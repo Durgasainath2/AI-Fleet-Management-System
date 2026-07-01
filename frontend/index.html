@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Fleet Management & Vehicle Health System</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ==========================================================================
+       LOGIN / AUTHENTICATION SCREEN
+       ========================================================================== -->
+  <div id="auth-screen" class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <img src="fleet_logo.png" alt="FleetControlX AI Logo" class="auth-logo-img">
+        <h1>FleetControlX AI</h1>
+        <p>Intelligent Fleet Operations Platform</p>
+      </div>
+      
+      <!-- Role Toggle -->
+      <div class="auth-toggle">
+        <button type="button" class="auth-toggle-btn active" data-role="ADMIN">Admin Console</button>
+        <button type="button" class="auth-toggle-btn" data-role="DRIVER">Driver Portal</button>
+      </div>
+
+      <form id="login-form">
+        <input type="hidden" id="login-role" value="ADMIN">
+        
+        <div class="form-group">
+          <label id="login-user-label" for="employee-id">Employee ID</label>
+          <div class="input-container">
+            <i class="fas fa-user-shield"></i>
+            <input type="text" id="employee-id" class="form-control" placeholder="e.g. EMP001" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-container">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        <div class="auth-actions">
+          <label class="remember-me">
+            <input type="checkbox" checked> Remember Me
+          </label>
+          <a href="#" class="auth-link" onclick="showToast('Reset Password', 'A reset link has been dispatched to your corporate email.', 'info')">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full">
+          Sign In <i class="fas fa-sign-in-alt"></i>
+        </button>
+
+        <div id="admin-links" class="auth-footer">
+          Don't have an account? <a href="#" class="auth-link" onclick="showToast('Registration Desk', 'Please contact system admin to register new employees.', 'warning')">Sign Up</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       ADMIN CONSOLE SCREEN
+       ========================================================================== -->
+  <div id="admin-screen" class="app-wrapper d-none">
+    
+    <!-- Sidebar (Dark Theme) -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="sidebar-logo">
+          <i class="fas fa-truck-monster"></i>
+          <span>FleetControlX AI</span>
+        </a>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+          <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        <a class="nav-item" data-view="vehicle" onclick="switchView('vehicle')">
+          <i class="fas fa-truck"></i> Vehicle Management
+        </a>
+        <a class="nav-item" data-view="driver" onclick="switchView('driver')">
+          <i class="fas fa-id-card"></i> Driver Management
+        </a>
+        <a class="nav-item" data-view="trip" onclick="switchView('trip')">
+          <i class="fas fa-route"></i> Trip Management
+        </a>
+        <a class="nav-item" data-view="fuel" onclick="switchView('fuel')">
+          <i class="fas fa-gas-pump"></i> Fuel Management
+        </a>
+        <a class="nav-item" data-view="maintenance" onclick="switchView('maintenance')">
+          <i class="fas fa-wrench"></i> Maintenance Management
+        </a>
+        <a class="nav-item" data-view="employee" onclick="switchView('employee')">
+          <i class="fas fa-users-cog"></i> Employee Management
+            <a class="nav-item" data-view="emergency-alerts" onclick="switchView('emergency-alerts')">
+              <i class="fas fa-exclamation-triangle text-danger"></i> Emergency Alerts 
+              <span class="badge badge-danger sidebar-alert-counter" id="sidebar-alert-counter" style="margin-left:auto; display:none;">0</span>
+            </a>
+            <a class="nav-item" data-view="route-optimization" onclick="switchView('route-optimization')">
+              <i class="fas fa-route text-success"></i> Route Optimization
+            </a>
+        </a>
+        <a class="nav-item d-none" data-view="mechanic-dashboard" onclick="switchView('mechanic-dashboard')">
+          <i class="fas fa-tools text-warning"></i> Mechanic Console
+        </a>
+        <a class="nav-item" href="vehicle-intelligence-report.html">
+          <i class="fas fa-file-invoice"></i> Vehicle Intelligence
+        </a>
+        <a class="nav-item" href="ai-prediction.html">
+          <i class="fas fa-brain"></i> AI Diagnostics Hub
+        </a>
+        <a class="nav-item" data-view="global-search" onclick="switchView('global-search')">
+          <i class="fas fa-search"></i> Global Search
+        </a>
+        <a class="nav-item" data-view="analytics" onclick="switchView('analytics')">
+          <i class="fas fa-chart-bar"></i> Analytics
+        </a>
+        <a class="nav-item" data-view="settings" onclick="switchView('settings')">
+          <i class="fas fa-cog"></i> Settings
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a class="nav-item logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Navbar (G-Student layout style) -->
+      <header class="navbar cats-navbar">
+        <div class="nav-left">
+          <button class="menu-toggle" onclick="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="cats-logo-container">
+            <span class="logo-title">FleetControlX</span>
+            <span class="logo-subtitle">AI</span>
+          </div>
+          <span class="cats-nav-separator">|</span>
+          <span class="cats-nav-title">Ops Hub</span>
+        </div>
+        
+        <div class="nav-right" style="position: relative;">
+          <!-- Global Sync & AI Diagnostics buttons in Navbar -->
+          <div class="nav-actions-container">
+            <button class="btn btn-sm btn-outline navbar-btn" onclick="refreshData()"><i class="fas fa-sync"></i> Sync Data</button>
+            <button class="btn btn-sm btn-primary navbar-btn" onclick="switchView('route-optimization')"><i class="fas fa-route"></i> Route Optimization</button>
+            <a href="ai-prediction.html" class="btn btn-sm btn-primary navbar-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px;"><i class="fas fa-brain"></i> AI Diagnostics</a>
+          </div>
+
+          <!-- Notification Bell -->
+          <div class="nav-notification" id="nav-notification-bell" onclick="toggleNotificationsDropdown(event)" title="View Smart Alerts">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="nav-bell-badge" style="display: none;"></span>
+          </div>
+
+          <!-- Notifications Dropdown Menu -->
+          <div id="notifications-dropdown" class="notifications-dropdown d-none">
+            <div class="notifications-header">
+              <h4>SMS & System Alerts</h4>
+              <button class="clear-alerts-btn" onclick="clearAllNotifications()">Clear All</button>
+            </div>
+            <div id="notifications-list" class="notifications-list">
+              <!-- Dynamically populated alerts -->
+            </div>
+          </div>
+          
+          <!-- User Profile -->
+          <div class="user-profile" id="nav-user-profile" onclick="toggleProfileDropdown(event)">
+            <span id="logged-in-username">Welcome, Sainath 👤</span>
+            <div class="user-avatar" id="nav-avatar">AD</div>
+          </div>
+
+          <!-- Profile Dropdown Menu -->
+          <div id="profile-dropdown" class="profile-dropdown d-none">
+            <div class="profile-dropdown-header">
+              <div class="profile-dropdown-avatar" id="prof-drop-avatar">AD</div>
+              <div class="profile-dropdown-meta">
+                <h4 id="prof-drop-name">YADALLA DURGA SAI NATH</h4>
+                <p id="prof-drop-role">ADMIN (EMP001)</p>
+              </div>
+            </div>
+            <div class="profile-dropdown-body">
+              <a onclick="showProfileDetailsModal()"><i class="fas fa-id-card"></i> 👤 Profile Details</a>
+              <a onclick="openModal('change-password-modal')"><i class="fas fa-key"></i> 🔒 Change Password</a>
+              <hr>
+              <a onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Body -->
+      <div class="content-body">
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="dashboard-view" class="view-section">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Fleet Command Dashboard</h2>
+              <p>Real-time fleet command operations, neural health forecasts, and alerts.</p>
+            </div>
+          </div>
+
+          <!-- Top Row: Fleet Command Center & Health Score -->
+          <div class="cats-dashboard-grid simplified-grid" style="margin-bottom: 25px;">
+            
+            <!-- Widget 1: Fleet Command Center (Today's Status) -->
+            <div class="cats-card">
+              <div class="cats-card-header">
+                <h3>Today's Fleet Status</h3>
+                <span class="badge badge-info"><i class="fas fa-signal"></i> Live Ops</span>
+              </div>
+              <div class="cats-card-body">
+                <div class="cats-subbox-container">
+                  <div class="cats-subbox" style="background-color: #f0fdfa; border-color: #ccfbf1;">
+                    <span class="cats-subbox-label" style="color: #0d9488;">Active</span>
+                    <span id="dash-active-vehicles" class="cats-subbox-value" style="color: #0d9488;">78</span>
+                  </div>
+                  <div class="cats-subbox" style="background-color: #eff6ff; border-color: #dbeafe;">
+                    <span class="cats-subbox-label" style="color: #2563eb;">On Trip</span>
+                    <span id="dash-ontrip-vehicles" class="cats-subbox-value" style="color: #2563eb;">45</span>
+                  </div>
+                  <div class="cats-subbox" style="background-color: #fef2f2; border-color: #fee2e2;">
+                    <span class="cats-subbox-label" style="color: #dc2626;">Under Repair</span>
+                    <span id="dash-repair-vehicles" class="cats-subbox-value" style="color: #dc2626;">8</span>
+                  </div>
+                </div>
+                <div style="margin-top: 15px; font-size: 0.85rem; font-weight: 700; color: var(--danger); display: flex; align-items: center; gap: 8px;">
+                  <i class="fas fa-exclamation-triangle animate-pulse"></i> Active Emergency Cases: <span id="dash-emerg-count">2</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Widget 2: Fleet Health Dashboard -->
+            <div class="cats-card">
+              <div class="cats-card-header">
+                <h3>Fleet Health Dashboard</h3>
+                <a onclick="switchView('analytics')" class="cats-more-btn">Analytics</a>
+              </div>
+              <div class="cats-card-body" style="display: flex; align-items: center; gap: 20px;">
+                <div id="dash-health-circle" style="width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle, #ffffff 55%, transparent 56%), conic-gradient(var(--success) 85%, #e2e8f0 0); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; color: var(--success); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                  85%
+                </div>
+                <div style="flex: 1;">
+                  <div class="cats-subbox-container" style="gap: 6px;">
+                    <div class="cats-subbox" style="min-height: 60px; padding: 6px 2px;">
+                      <span class="cats-subbox-label" style="font-size: 0.6rem;">Healthy</span>
+                      <span id="dash-healthy-count" class="cats-subbox-value" style="font-size: 1rem; color: var(--success);">70</span>
+                    </div>
+                    <div class="cats-subbox" style="min-height: 60px; padding: 6px 2px;">
+                      <span class="cats-subbox-label" style="font-size: 0.6rem;">High Risk</span>
+                      <span id="dash-highrisk-count" class="cats-subbox-value" style="font-size: 1rem; color: var(--danger);">5</span>
+                    </div>
+                    <div class="cats-subbox" style="min-height: 60px; padding: 6px 2px;">
+                      <span class="cats-subbox-label" style="font-size: 0.6rem;">Due Serv.</span>
+                      <span id="dash-dueserv-count" class="cats-subbox-value" style="font-size: 1rem; color: var(--warning);">3</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Middle Row: Smart Alerts Center & Fleet Ranking System -->
+          <div class="cats-dashboard-grid simplified-grid" style="margin-bottom: 25px;">
+            
+            <!-- Widget 3: Smart Alerts Center -->
+            <div class="cats-card" style="min-height: 250px;">
+              <div class="cats-card-header">
+                <h3>Smart Alerts Center</h3>
+                <span class="badge badge-danger">Critical</span>
+              </div>
+              <div class="cats-card-body" style="max-height: 170px; overflow-y: auto;">
+                <div id="dash-smart-alerts-list" style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Dynamic alerts -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Widget 4: Fleet Ranking System -->
+            <div class="cats-card" style="min-height: 250px;">
+              <div class="cats-card-header">
+                <h3>Fleet Performance Rankings</h3>
+                <i class="fas fa-trophy text-warning"></i>
+              </div>
+              <div class="cats-card-body" style="font-size: 0.8rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div>
+                    <h4 style="font-weight: 700; color: var(--success); margin-bottom: 5px;"><i class="fas fa-thumbs-up"></i> Top Assets</h4>
+                    <ul id="dash-top-assets-list" style="list-style: none; padding-left: 0;">
+                      <!-- Dynamic top assets -->
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 style="font-weight: 700; color: var(--danger); margin-bottom: 5px;"><i class="fas fa-thumbs-down"></i> High Risk Assets</h4>
+                    <ul id="dash-high-risk-list" style="list-style: none; padding-left: 0;">
+                      <!-- Dynamic high risk assets -->
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Row: Emergency Breakdowns Log -->
+          <div class="cats-dashboard-grid simplified-grid">
+            <div class="cats-card cats-table-card full-width-card">
+              <div class="cats-card-header">
+                <h3>Emergency Breakdowns Log</h3>
+                <a onclick="switchView('emergency-alerts')" class="cats-more-btn">More..</a>
+              </div>
+              <div class="cats-card-body">
+                <div class="cats-table-wrapper">
+                  <table class="cats-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Incident Date</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cats-breakdown-table-body">
+                      <!-- Live breakdowns -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. VEHICLE MANAGEMENT VIEW -->
+        <section id="vehicle-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Vehicle Management</h2>
+              <p>Add, monitor, update, and search active fleet vehicles.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="openModal('vehicle-modal')"><i class="fas fa-plus"></i> Add Vehicle</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-controls">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="vehicle-search" placeholder="Search by vehicle number or type..." oninput="renderVehicleTable(this.value)">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Vehicle ID</th>
+                    <th>Vehicle Number</th>
+                    <th>Vehicle Type</th>
+                    <th>Purchase Date</th>
+                    <th>Insurance Expiry</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="vehicle-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. DRIVER MANAGEMENT VIEW -->
+        <section id="driver-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Driver Management</h2>
+              <p>Oversee assigned drivers, license expiration warnings, and vehicle pairings.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="openDriverAddModal()"><i class="fas fa-plus"></i> Add Driver</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-controls">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="driver-search" placeholder="Search by name, ID or vehicle..." oninput="renderDriverTable(this.value)">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Driver ID</th>
+                    <th>Driver Name</th>
+                    <th>Phone Number</th>
+                    <th>License Number</th>
+                    <th>License Expiry Date</th>
+                    <th>Assigned Vehicle</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="driver-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. TRIP MANAGEMENT VIEW -->
+        <section id="trip-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Trip Management</h2>
+              <p>View dispatch history, route distances, and associated drivers.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="openTripAddModal()"><i class="fas fa-plus"></i> Log New Trip</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-controls">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="trip-search" placeholder="Search source or destination..." oninput="renderTripTable(this.value)">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trip ID</th>
+                    <th>Source</th>
+                    <th>Destination</th>
+                    <th>Distance</th>
+                    <th>Driver Assigned</th>
+                    <th>Vehicle Assigned</th>
+                    <th>Trip Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="trip-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. FUEL MANAGEMENT VIEW -->
+        <section id="fuel-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Fuel Management</h2>
+              <p>Track refuels, cost entries, and fuel logs to compute consumption anomalies.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="openFuelAddModal()"><i class="fas fa-plus"></i> Log Fuel Purchase</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-controls">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="fuel-search" placeholder="Search vehicle..." oninput="renderFuelTable(this.value)">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fuel Entry ID</th>
+                    <th>Vehicle Number</th>
+                    <th>Fuel Quantity</th>
+                    <th>Fuel Cost</th>
+                    <th>Fuel Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="fuel-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. MAINTENANCE MANAGEMENT VIEW -->
+        <section id="maintenance-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Maintenance Management</h2>
+              <p>Schedule service repairs and track predictive next service intervals.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="openMaintAddModal()"><i class="fas fa-plus"></i> Log Maintenance</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-controls">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="maint-search" placeholder="Search vehicle or service..." oninput="renderMaintenanceTable(this.value)">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Maintenance ID</th>
+                    <th>Vehicle Number</th>
+                    <th>Service Type</th>
+                    <th>Service Cost</th>
+                    <th>Previous Service Date</th>
+                    <th>Next Service Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="maint-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. EMPLOYEE MANAGEMENT VIEW -->
+        <section id="employee-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Employee Management</h2>
+              <p>Manage office users, administrators, dispatchers, and system operators.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="openModal('employee-modal')"><i class="fas fa-user-plus"></i> Add Employee</button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-controls">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="employee-search" placeholder="Search employees..." oninput="renderEmployeeTable(this.value)">
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Email ID</th>
+                    <th>Phone Number</th>
+                    <th>Role</th>
+                    <th>Join Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="employee-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. EMERGENCY ALERTS VIEW -->
+        <section id="emergency-alerts-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2 class="text-danger"><i class="fas fa-bullhorn animate-pulse"></i> Emergency Incident Dispatch Center</h2>
+              <p>Review real-time breakdown reports, retrieve driver contacts, incident location and execute responses.</p>
+            </div>
+          </div>
+
+          <!-- List of Emergency Incidents -->
+          <div class="emergency-alerts-grid" id="emergency-alerts-list-container">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </section>
+
+        <!-- 8b. ROUTE OPTIMIZATION VIEW -->
+        <section id="route-optimization-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Maps & Route Optimization Center</h2>
+              <p>Configure dispatch paths, calculate optimal routing, fuel savings, and analyze route performance metrics.</p>
+            </div>
+          </div>
+
+          <!-- Route Optimization Analytics Grid -->
+          <div class="cats-dashboard-grid simplified-grid mb-4" style="margin-bottom: 25px;">
+            
+            <!-- Longest & Most Used Routes -->
+            <div class="cats-card">
+              <div class="cats-card-header">
+                <h3>High-Frequency Route Stats</h3>
+                <i class="fas fa-chart-line text-primary"></i>
+              </div>
+              <div class="cats-card-body" style="font-size: 0.85rem;">
+                <table class="details-table" style="margin-top: 0;">
+                  <tr><th>Most Used Route</th><td>NH48 (Bangalore ➔ Chennai)</td></tr>
+                  <tr><th>Longest Active Trip</th><td>Hyderabad ➔ Bangalore (570 KM)</td></tr>
+                  <tr><th>Optimized Active Paths</th><td>4 Routes Operational</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <!-- Highest Fuel Cost Routes -->
+            <div class="cats-card">
+              <div class="cats-card-header">
+                <h3>Fuel & Cost Intensive Routes</h3>
+                <i class="fas fa-gas-pump text-danger"></i>
+              </div>
+              <div class="cats-card-body" style="font-size: 0.85rem;">
+                <table class="details-table" style="margin-top: 0;">
+                  <tr><th>Highest Fuel Cost Path</th><td>NH65 (Hyderabad ➔ Vijayawada)</td></tr>
+                  <tr><th>Est. Monthly Expenses</th><td>₹1,24,000</td></tr>
+                  <tr><th>AI Potential Fuel Savings</th><td>₹18,500 (15% Savings)</td></tr>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Interactive Admin Route Planner Simulator -->
+          <div class="dashboard-card mb-4" style="padding: 25px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 15px;"><i class="fas fa-compass"></i> Interactive Admin Route Optimization Simulator</h3>
+            
+            <div class="route-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Source Terminal</label>
+                <input type="text" id="admin-route-source" class="form-control" style="padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 6px;" placeholder="e.g. Tirupati" value="Tirupati">
+              </div>
+              <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Destination Terminal</label>
+                <input type="text" id="admin-route-destination" class="form-control" style="padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 6px;" placeholder="e.g. Chennai" value="Chennai">
+              </div>
+            </div>
+            
+            <button class="btn btn-primary" style="padding: 10px 20px; font-weight: 600; border-radius: 6px; border: none; color: #fff; background-color: var(--primary); cursor: pointer;" onclick="calculateAdminOptimalRoute()"><i class="fas fa-map-marked-alt"></i> Optimize & Dispatch Route</button>
+
+            <!-- Route Result Box -->
+            <div id="admin-route-result" class="route-result-box d-none" style="background-color: #f0fdfa; border: 1.5px solid #99f6e4; border-radius: 8px; padding: 15px; margin-top: 15px; font-size: 0.85rem; line-height: 1.5;">
+              <div>
+                <strong style="color: var(--primary-dark);"><i class="fas fa-compass"></i> Recommended Path:</strong>
+                <span id="admin-res-route-path" style="font-weight: 700; color: var(--accent);">NH716 Route (via Puttur Bypass)</span>
+              </div>
+              <div class="route-result-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed #99f6e4;">
+                <div><strong>Distance:</strong> <br><span id="admin-res-route-dist">135 KM</span></div>
+                <div><strong>Est. Time:</strong> <br><span id="admin-res-route-time">2 Hours 45 Mins</span></div>
+                <div><strong>Est. Fuel Cost:</strong> <br><span id="admin-res-route-fuel">₹850</span></div>
+                <div><strong>Status:</strong> <br><span style="color:var(--success); font-weight:700;"><i class="fas fa-check-circle"></i> Optimal Path</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. AI PREDICTION MODULE VIEW -->
+        <section id="ai-prediction-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>AI Predictive Diagnosis Module</h2>
+              <p>Predict breakdowns, maintenance deadlines, fuel trends, and driver safety using machine learning models.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-card mb-4">
+            <div class="table-controls" style="margin-bottom: 0;">
+              <div class="flex-gap-2 w-full" style="max-width: 600px;">
+                <input type="text" id="ai-vehicle-search-input" class="form-control" style="padding-left: 14px;" placeholder="Search Vehicle Number or ID (e.g. AP39AB1234 or 101)">
+                <button class="btn btn-primary" onclick="calculateAIPredictions()" style="width: auto; white-space: nowrap;">
+                  <i class="fas fa-microchip"></i> Run Diagnosis
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diagnosis Results -->
+          <div id="ai-prediction-results" class="ai-grid d-none">
+            
+            <!-- 1. Predictive Maintenance -->
+            <div class="ai-card">
+              <div class="ai-card-banner">
+                <i class="fas fa-tools"></i>
+                <h4>Predictive Maintenance</h4>
+              </div>
+              <div class="ai-card-content">
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Maintenance Required</span>
+                  <span class="ai-metric-value" id="ai-pred-maint-req">Yes</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Risk Level</span>
+                  <span class="ai-metric-value text-danger" id="ai-pred-maint-risk">High</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Predicted Next Service Date</span>
+                  <span class="ai-metric-value" id="ai-pred-maint-date">2026-06-23</span>
+                </div>
+                
+                <!-- Recommended Service Center -->
+                <div class="rec-box d-none" id="ai-pred-maint-rec-box" style="margin-top: 15px; padding: 12px; border-radius: 8px; background-color: #fdf2f8; border: 1px solid #fbcfe8; font-size: 0.8rem;">
+                  <div style="font-weight: 700; color: #9d174d; margin-bottom: 5px;"><i class="fas fa-location-dot"></i> Recommended Service Point</div>
+                  <div style="color: #5c0632; line-height: 1.4;">
+                    <strong>Center Name:</strong> <span id="ai-pred-maint-center">Madhapur Fleet Diagnostics Point</span><br>
+                    <strong>Distance:</strong> <span id="ai-pred-maint-dist">8 KM</span> | <strong>Est. Cost:</strong> <span id="ai-pred-maint-cost">₹5,000</span><br>
+                    <strong>Est. Repair Time:</strong> <span id="ai-pred-maint-time">2 Days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Vehicle Health Score -->
+            <div class="ai-card">
+              <div class="ai-card-banner" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
+                <i class="fas fa-heartbeat"></i>
+                <h4>Vehicle Health Score</h4>
+              </div>
+              <div class="ai-card-content">
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Health Score</span>
+                  <span class="ai-metric-value" id="ai-pred-health-score">88/100</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Performance Rating</span>
+                  <span class="ai-metric-value" id="ai-pred-health-rating">Excellent</span>
+                </div>
+                <div class="health-score-container">
+                  <span class="ai-metric-label" style="font-size: 0.8rem;">Health Bar</span>
+                  <div class="health-bar-bg">
+                    <div id="ai-pred-health-bar" class="health-bar-fill" style="width: 88%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Fuel Cost Prediction -->
+            <div class="ai-card">
+              <div class="ai-card-banner">
+                <i class="fas fa-coins"></i>
+                <h4>Fuel Cost & Consumption</h4>
+              </div>
+              <div class="ai-card-content">
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Expected Cost Next Month</span>
+                  <span class="ai-metric-value" id="ai-pred-fuel-cost">₹12,400</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Fuel Consumption Trend</span>
+                  <span class="ai-metric-value" id="ai-pred-fuel-trend">Stable</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Driver Performance Analysis -->
+            <div class="ai-card">
+              <div class="ai-card-banner">
+                <i class="fas fa-user-astronaut"></i>
+                <h4>Driver Performance</h4>
+              </div>
+              <div class="ai-card-content">
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Driver Rating</span>
+                  <span class="ai-metric-value" id="ai-pred-driver-rating">★★★★★ (4.8)</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Trips Completed</span>
+                  <span class="ai-metric-value" id="ai-pred-driver-trips">32</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Fuel Efficiency Rating</span>
+                  <span class="ai-metric-value" id="ai-pred-driver-eff">Good</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Fuel Efficiency Analysis -->
+            <div class="ai-card">
+              <div class="ai-card-banner">
+                <i class="fas fa-tachometer-alt"></i>
+                <h4>Efficiency Analysis</h4>
+              </div>
+              <div class="ai-card-content">
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">KM Per Liter</span>
+                  <span class="ai-metric-value" id="ai-pred-efficiency-km">5.2 KM/L</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Efficiency Category</span>
+                  <span class="ai-metric-value" id="ai-pred-efficiency-category">Heavy Consumer</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. Breakdown Risk Prediction -->
+            <div class="ai-card">
+              <div class="ai-card-banner" style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h4>Breakdown Risk</h4>
+              </div>
+              <div class="ai-card-content">
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Breakdown Probability</span>
+                  <span class="ai-metric-value text-danger" id="ai-pred-breakdown-prob">12%</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Risk Level</span>
+                  <span class="ai-metric-value" id="ai-pred-breakdown-risk">Low</span>
+                </div>
+                <div class="ai-metric-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                  <span class="ai-metric-label">Recommended Action</span>
+                  <span class="ai-metric-value" style="font-weight: 500; font-size: 0.85rem;" id="ai-pred-breakdown-action">Schedule standard oil check.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7. Maintenance Cost Savings -->
+            <div class="ai-card">
+              <div class="ai-card-banner" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                <i class="fas fa-piggy-bank"></i>
+                <h4>Maintenance Cost Savings</h4>
+              </div>
+              <div class="ai-card-content">
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">Service Today</span>
+                  <span class="ai-metric-value" id="ai-pred-cost-today">₹5,000</span>
+                </div>
+                <div class="ai-metric-item">
+                  <span class="ai-metric-label">If Delayed 2 Months</span>
+                  <span class="ai-metric-value" id="ai-pred-cost-delay">₹18,000</span>
+                </div>
+                <div class="ai-metric-item" style="border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 8px;">
+                  <span class="ai-metric-label" style="font-weight: 700; color: var(--success);">Potential Savings</span>
+                  <span class="ai-metric-value" style="font-weight: 700; color: var(--success);" id="ai-pred-cost-savings">₹13,000</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 10. AI VEHICLE REPORT GENERATOR VIEW -->
+        <section id="vehicle-reports-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>AI Vehicle Diagnostic Report Generator</h2>
+              <p>Compile a complete analytical fleet dossier including vehicle profiles, fuel expenses, maintenance logs, and breakdown probabilities.</p>
+            </div>
+          </div>
+
+          <div class="report-controls">
+            <label for="report-vehicle-search-input" style="font-weight: 600;">Search Vehicle (ID or Number):</label>
+            <input type="text" id="report-vehicle-search-input" class="form-control" style="width: 250px; display: inline-block; margin-right:10px; padding-left:14px;" placeholder="e.g. AP39AB1234 or 101">
+            <button class="btn btn-primary" onclick="generateVehicleReport()"><i class="fas fa-file-alt"></i> Generate Report</button>
+            <button class="btn btn-secondary" onclick="downloadPDFReport()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            <button class="btn btn-outline" onclick="printReport()"><i class="fas fa-print"></i> Print Report</button>
+          </div>
+
+          <!-- Report Document Preview Box -->
+          <div id="report-preview-section" class="report-preview-container d-none">
+            <div id="report-preview-print">
+              <div class="report-header">
+                <div class="report-logo">
+                  <i class="fas fa-truck-monster"></i>
+                  <span>FleetControlX AI Report Suite</span>
+                </div>
+                <div class="report-meta">
+                  <div>Report Generated: <span id="rep-date">2026-06-22</span></div>
+                  <div>Security Classification: <strong>RESTRICTED</strong></div>
+                </div>
+              </div>
+
+              <div class="report-grid">
+                <!-- Left Details -->
+                <div>
+                  <div class="report-section">
+                    <h4>Vehicle Details</h4>
+                    <table class="report-table">
+                      <tr><th>Vehicle Number</th><td id="rep-v-number">AP39AB1234</td></tr>
+                      <tr><th>Vehicle Type</th><td id="rep-v-type">Truck</td></tr>
+                      <tr><th>Insurance Expiry</th><td id="rep-v-insurance">2026-06-29</td></tr>
+                      <tr><th>Operational Status</th><td id="rep-v-status">Active</td></tr>
+                    </table>
+                  </div>
+
+                  <div class="report-section">
+                    <h4>Assigned Driver</h4>
+                    <table class="report-table">
+                      <tr><th>Driver Name</th><td id="rep-d-name">Ramesh</td></tr>
+                      <tr><th>Phone Number</th><td id="rep-d-phone">9123456789</td></tr>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Right Diagnostics -->
+                <div>
+                  <div class="report-section">
+                    <h4>Fleet Usage & Expenditure</h4>
+                    <table class="report-table">
+                      <tr><th>Trips Completed</th><td id="rep-trip-count">2</td></tr>
+                      <tr><th>Total Distance</th><td id="rep-trip-distance">555 KM</td></tr>
+                      <tr><th>Total Fuel Cost</th><td id="rep-fuel-cost">₹18,150</td></tr>
+                      <tr><th>Total Maintenance Cost</th><td id="rep-maint-cost">₹15,000</td></tr>
+                    </table>
+                  </div>
+
+                  <div class="report-section">
+                    <h4>AI Predictive Analytics</h4>
+                    <table class="report-table">
+                      <tr><th>Vehicle Health Score</th><td id="rep-health-score">90/100</td></tr>
+                      <tr><th>Breakdown Risk Index</th><td id="rep-breakdown-risk">Low (7%)</td></tr>
+                      <tr><th>Next Estimated Service Cost</th><td id="rep-pred-cost">₹12,000</td></tr>
+                      <tr><th>Predicted Next Service Date</th><td id="rep-pred-date">2026-06-23</td></tr>
+                      <tr id="rep-ai-maint-required-row"><th>Maintenance Required</th><td id="rep-ai-maint-required">NO</td></tr>
+                    </table>
+
+                    <!-- Service Center Recommendation -->
+                    <div id="rep-ai-rec-section" class="d-none" style="margin-top: 15px; padding: 12px; border-radius: 6px; background-color: #fdf2f8; border: 1px solid #fbcfe8;">
+                      <h5 style="color: #9d174d; font-size: 0.85rem; font-weight: 700; margin-bottom: 5px;"><i class="fas fa-location-dot"></i> Recommended Service Center</h5>
+                      <div style="font-size: 0.8rem; line-height: 1.4; color: #5c0632;">
+                        <strong>Center Name:</strong> <span id="rep-ai-rec-center">Madhapur Fleet Diagnostics Point</span><br>
+                        <strong>Distance:</strong> <span id="rep-ai-rec-dist">8 KM</span> | <strong>Estimated Time:</strong> <span id="rep-ai-rec-time">2 Days</span>
+                      </div>
+                    </div>
+
+                    <!-- Cost Savings Predictor -->
+                    <div id="rep-ai-savings-section" class="d-none" style="margin-top: 15px; padding: 12px; border-radius: 6px; background-color: #eff6ff; border: 1px solid #bfdbfe;">
+                      <h5 style="color: #1e3a8a; font-size: 0.85rem; font-weight: 700; margin-bottom: 5px;"><i class="fas fa-piggy-bank"></i> Cost Savings Prediction</h5>
+                      <table class="report-table" style="font-size: 0.8rem; margin-top: 5px;">
+                        <tr><th>Service Today</th><td><strong id="rep-ai-cost-today">₹5,000</strong></td></tr>
+                        <tr><th>If Delayed by 2 Months</th><td><strong id="rep-ai-cost-delay">₹18,000</strong></td></tr>
+                        <tr style="border-top: 1px dashed #bfdbfe; color: var(--success);"><th style="color: var(--success);">Potential Savings</th><td><strong id="rep-ai-savings" style="color: var(--success);">₹13,000</strong></td></tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- History Lists inside Report -->
+              <div class="report-section">
+                <h4>Recent Operations Summary</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                  <div>
+                    <h5>Recent Trip Dispatches</h5>
+                    <table class="report-table">
+                      <thead>
+                        <tr><th>Date</th><th>Route</th><th>Distance</th></tr>
+                      </thead>
+                      <tbody id="rep-trips-table"></tbody>
+                    </table>
+                  </div>
+                  <div>
+                    <h5>Fuel Entries</h5>
+                    <table class="report-table">
+                      <thead>
+                        <tr><th>Date</th><th>Qty</th><th>Cost</th></tr>
+                      </thead>
+                      <tbody id="rep-fuel-table"></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="report-section" style="margin-top: 20px;">
+                  <h5>Service Logs</h5>
+                  <table class="report-table">
+                    <thead>
+                      <tr><th>Date Completed</th><th>Service Description</th><th>Cost</th></tr>
+                    </thead>
+                    <tbody id="rep-maint-table"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div style="text-align: center; border-top: 1px solid var(--border-color); padding-top: 20px; font-size: 0.8rem; color: var(--text-muted); margin-top: 40px;">
+                FleetControlX AI System - Final Year AIML Project
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 11. GLOBAL SEARCH VIEW -->
+        <section id="global-search-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Global Telemetry Search Engine</h2>
+              <p>Instantly retrieve logs, driver metrics, distances, fuel fillings, and maintenance dates by vehicle number.</p>
+            </div>
+          </div>
+
+          <div class="search-container">
+            <div class="search-bar-huge">
+              <input type="text" id="global-search-input" placeholder="Enter Vehicle Number (e.g. AP39AB1234)...">
+              <select id="search-vehicle-select" style="width: auto; border: none; padding: 0 10px; outline: none; border-left: 1px solid var(--border-color); font-weight: 500;">
+                <option value="">Or Select...</option>
+              </select>
+              <button class="btn btn-primary" onclick="executeGlobalSearch()"><i class="fas fa-search"></i> Search</button>
+            </div>
+          </div>
+
+          <!-- Search Result Panels -->
+          <div id="global-search-results" class="search-results-section d-none">
+            <div class="search-results-grid">
+              
+              <!-- Vehicle Details Card -->
+              <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                  <h3>Vehicle Profile: <span id="gs-v-number">AP39AB1234</span></h3>
+                  <span id="gs-v-status">Active</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                  <div class="search-info-group">
+                    <label>Vehicle Type</label>
+                    <span class="info-value" id="gs-v-type">Truck</span>
+                  </div>
+                  <div class="search-info-group">
+                    <label>Insurance Expiry</label>
+                    <span class="info-value" id="gs-v-insurance">2026-06-29</span>
+                  </div>
+                  <div class="search-info-group">
+                    <label>Distance Travelled</label>
+                    <span class="info-value text-success" id="gs-stat-distance" style="font-size: 1.2rem; font-weight: 700;">550 KM</span>
+                  </div>
+                  <div class="search-info-group">
+                    <label>Last Fuel Filled Date</label>
+                    <span class="info-value" id="gs-stat-fuel">2026-06-18</span>
+                  </div>
+                  <div class="search-info-group">
+                    <label>Previous Service Date</label>
+                    <span class="info-value" id="gs-stat-prevservice">2026-04-10</span>
+                  </div>
+                  <div class="search-info-group">
+                    <label>Next Scheduled Service</label>
+                    <span class="info-value text-danger" id="gs-stat-nextservice">2026-06-23</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Driver Card -->
+              <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                  <h3>Driver Contact & Licenses</h3>
+                  <i class="fas fa-id-card text-muted"></i>
+                </div>
+                <div class="search-info-group">
+                  <label>Driver Assigned</label>
+                  <span class="info-value" id="gs-d-name">Ramesh</span>
+                </div>
+                <div class="search-info-group">
+                  <label>Contact Number</label>
+                  <span class="info-value" id="gs-d-phone">9876543211</span>
+                </div>
+                <div class="search-info-group">
+                  <label>License Registration</label>
+                  <span class="info-value" id="gs-d-license">DL-AP391234</span>
+                </div>
+                <div class="search-info-group">
+                  <label>License Expiration</label>
+                  <span class="info-value text-warning" id="gs-d-expiry">2026-07-07</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- 11. ANALYTICS DASHBOARD VIEW -->
+        <section id="analytics-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>Fleet Analytics & Cost Optimization</h2>
+              <p>Visualize trends, health rankings, fuel costs, and driver ratings graphs.</p>
+            </div>
+          </div>
+
+          <div class="analytics-grid">
+            <div class="dashboard-card">
+              <div class="dashboard-card-header"><h3>Fuel Cost Trend (Last 6 Months)</h3></div>
+              <div class="chart-container"><canvas id="chart-fuel-trend"></canvas></div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header"><h3>Maintenance Cost Trend</h3></div>
+              <div class="chart-container"><canvas id="chart-maint-trend"></canvas></div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header"><h3>Trips Per Month</h3></div>
+              <div class="chart-container"><canvas id="chart-trips-month"></canvas></div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header"><h3>Vehicle Status Distribution</h3></div>
+              <div class="chart-container"><canvas id="chart-vehicle-status"></canvas></div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header"><h3>Driver Performance Ranking</h3></div>
+              <div class="chart-container"><canvas id="chart-driver-perf"></canvas></div>
+            </div>
+
+            <div class="dashboard-card">
+              <div class="dashboard-card-header"><h3>Fleet Health Ranking</h3></div>
+              <div class="chart-container"><canvas id="chart-fleet-health"></canvas></div>
+            </div>
+
+            <div class="dashboard-card" style="grid-column: span 2;">
+              <div class="dashboard-card-header"><h3>Vehicle Usage Trend (Fleet Utilization %)</h3></div>
+              <div class="chart-container" style="height: 300px;"><canvas id="chart-vehicle-usage"></canvas></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 12. SETTINGS VIEW -->
+        <section id="settings-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2>System Settings</h2>
+              <p>Adjust system rules, alert limits, and notifications.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-card" style="max-width: 700px;">
+            <form onsubmit="saveSettings(event)">
+              <div class="modal-grid-2">
+                <div class="form-group">
+                  <label>Fuel Consumption Alert Level (L/100KM)</label>
+                  <input type="number" class="form-control" value="28" style="padding-left: 14px;">
+                </div>
+                <div class="form-group">
+                  <label>Insurance Expiry Notification Window</label>
+                  <select class="form-control" style="padding-left: 14px;">
+                    <option>7 Days (Recommended)</option>
+                    <option>15 Days</option>
+                    <option>30 Days</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Driver License Warning Expiry</label>
+                  <select class="form-control" style="padding-left: 14px;">
+                    <option>15 Days</option>
+                    <option>30 Days</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Maintenance Warning Offset</label>
+                  <select class="form-control" style="padding-left: 14px;">
+                    <option>1 Day Tomorrow</option>
+                    <option>3 Days</option>
+                    <option>7 Days</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="margin-top: 15px; width: auto;"><i class="fas fa-save"></i> Save Settings</button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 11. MECHANIC DASHBOARD VIEW -->
+        <section id="mechanic-dashboard-view" class="view-section d-none">
+          <div class="page-header">
+            <div class="page-title">
+              <h2><i class="fas fa-tools"></i> Mechanic Repair Console</h2>
+              <p>Manage assigned repair jobs, claim pending fleet tasks, and log repair costs.</p>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="metrics-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px;">
+            <div class="metric-card" style="border-left: 4px solid var(--accent); background-color: var(--bg-card); padding: 15px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center;">
+              <div class="metric-info">
+                <span class="metric-label" style="font-size: 0.8rem; color: var(--text-muted);">Active Assignments</span>
+                <h3 id="mech-stat-assigned" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-top: 5px;">0</h3>
+              </div>
+              <div class="metric-icon" style="color: var(--accent); font-size: 2rem;"><i class="fas fa-wrench"></i></div>
+            </div>
+            <div class="metric-card" style="border-left: 4px solid var(--warning); background-color: var(--bg-card); padding: 15px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center;">
+              <div class="metric-info">
+                <span class="metric-label" style="font-size: 0.8rem; color: var(--text-muted);">Pending Review</span>
+                <h3 id="mech-stat-pending" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-top: 5px;">0</h3>
+              </div>
+              <div class="metric-icon" style="color: var(--warning); font-size: 2rem;"><i class="fas fa-clock"></i></div>
+            </div>
+            <div class="metric-card" style="border-left: 4px solid var(--success); background-color: var(--bg-card); padding: 15px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center;">
+              <div class="metric-info">
+                <span class="metric-label" style="font-size: 0.8rem; color: var(--text-muted);">Completed Repairs</span>
+                <h3 id="mech-stat-completed" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-top: 5px;">0</h3>
+              </div>
+              <div class="metric-icon" style="color: var(--success); font-size: 2rem;"><i class="fas fa-check-double"></i></div>
+            </div>
+          </div>
+
+          <!-- Assigned Repairs -->
+          <div class="card" style="margin-bottom: 20px; background-color: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); padding: 20px;">
+            <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px;"><i class="fas fa-tasks"></i> My Assigned Repair Work</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="report-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                  <tr style="background-color: rgba(0,0,0,0.02); text-align: left;">
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Repair ID</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Vehicle</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Task Description</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Billed Cost</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Assigned Date</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Status</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="mechanic-assigned-table-body">
+                  <!-- Dynamic -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pending Maintenance Requests -->
+          <div class="card" style="margin-bottom: 20px; background-color: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); padding: 20px;">
+            <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px;"><i class="fas fa-clipboard-list"></i> Fleet Pending Maintenance Requests</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="report-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                  <tr style="background-color: rgba(0,0,0,0.02); text-align: left;">
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Ticket ID</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Vehicle</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Service Request Type</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Reported Date</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="mechanic-pending-table-body">
+                  <!-- Dynamic -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Completed Repair Logs -->
+          <div class="card" style="background-color: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-color); padding: 20px;">
+            <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 8px;"><i class="fas fa-history"></i> My Completed Repair Logs</h3>
+              <div style="font-size: 0.9rem; font-weight: 700; color: var(--success);">
+                Total Repair Billings: <span id="mechanic-total-billing">₹0</span>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="report-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                <thead>
+                  <tr style="background-color: rgba(0,0,0,0.02); text-align: left;">
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Repair ID</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Vehicle</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Repairs Performed</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Billed Cost</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Date Completed</th>
+                    <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="mechanic-history-table-body">
+                  <!-- Dynamic -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       DRIVER PORTAL SCREEN
+       ========================================================================== -->
+  <div id="driver-portal-screen" class="driver-portal-wrapper d-none">
+    <header class="driver-navbar">
+      <div class="driver-navbar-logo">
+        <i class="fas fa-truck-monster"></i>
+        <span>FleetControlX AI Driver Hub</span>
+      </div>
+      <div class="driver-navbar-actions" style="position: relative;">
+        <!-- Driver Profile Dropdown hook -->
+        <span id="driver-welcome-text" style="font-weight: 500; cursor:pointer;" onclick="toggleProfileDropdown(event)">Welcome, Ramesh 👤</span>
+        <button class="btn btn-sm btn-danger" onclick="logout()" style="width: auto;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+
+        <!-- Profile Dropdown Menu for Driver -->
+        <div id="profile-dropdown-driver" class="profile-dropdown d-none" style="right: 80px; top: 40px; color: var(--text-main);">
+          <div class="profile-dropdown-header">
+            <div class="profile-dropdown-avatar" style="background-color: var(--success-bg); color: var(--success);">DR</div>
+            <div class="profile-dropdown-meta">
+              <h4 id="prof-drop-name-drv">Ramesh</h4>
+              <p id="prof-drop-role-drv">DRIVER (DRV001)</p>
+            </div>
+          </div>
+          <div class="profile-dropdown-body">
+            <a onclick="showProfileDetailsModal()"><i class="fas fa-id-card"></i> 👤 Profile Details</a>
+            <a onclick="openModal('change-password-modal')"><i class="fas fa-key"></i> 🔒 Change Password</a>
+            <hr>
+            <a onclick="logout()" class="text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="driver-content">
+      <div class="driver-grid">
+        
+        <!-- Left: Breakdown Report Form and Trips -->
+        <div>
+          
+          <!-- Breakdown Report Section -->
+          <div class="dashboard-card mb-4" style="border-left: 5px solid var(--danger);">
+            <div class="dashboard-card-header">
+              <h3 class="text-danger"><i class="fas fa-bullhorn"></i> Emergency Breakdown Incident Report</h3>
+              <span class="badge badge-danger">High Priority Dispatch</span>
+            </div>
+            
+            <form id="breakdown-form" onsubmit="submitBreakdownReport(event)">
+              <div class="modal-grid-2">
+                <div class="form-group">
+                  <label>Vehicle Number</label>
+                  <input type="text" id="bd-vehicle" class="form-control" readonly style="padding-left: 14px; background-color: #f1f5f9;">
+                </div>
+                <div class="form-group">
+                  <label>Current Breakdown Location</label>
+                  <div class="input-container">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <input type="text" id="bd-location" class="form-control" placeholder="e.g. NH-65 highway near toll plaza" required>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="modal-grid-2">
+                <div class="form-group">
+                  <label>Distance from Depot (KM)</label>
+                  <div class="input-container">
+                    <i class="fas fa-road"></i>
+                    <input type="number" id="bd-distance" class="form-control" placeholder="e.g. 45" required min="1" value="45">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Issue Classification</label>
+                  <select id="bd-issue" class="form-control" style="padding-left: 14px;" required>
+                    <option value="Engine Failure">Engine Failure</option>
+                    <option value="Tyre Puncture">Tyre Puncture</option>
+                    <option value="Brake Failure">Brake Failure</option>
+                    <option value="Battery Failure">Battery Failure</option>
+                    <option value="Accident">Accident</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="modal-grid-2">
+                <div class="form-group">
+                  <label>Upload Incident Photo (Optional)</label>
+                  <input type="file" id="bd-photo" class="form-control" style="padding: 8px 10px; font-size: 0.8rem;">
+                </div>
+                <div class="form-group">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Issue Description</label>
+                <textarea id="bd-description" class="form-control" rows="3" placeholder="Provide extra detail about the incident..." style="padding: 10px 14px;" required></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-danger w-full">
+                <i class="fas fa-paper-plane"></i> Submit Incident Breakdown Report
+              </button>
+            </form>
+          </div>
+
+          <!-- Trip History -->
+          <div class="dashboard-card">
+            <div class="dashboard-card-header">
+              <h3>My Assigned Trips</h3>
+              <i class="fas fa-route text-muted"></i>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trip ID</th>
+                    <th>Route Info</th>
+                    <th>Distance</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="driver-trips-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Side: Health Score and Vehicle Details -->
+        <div>
+          <!-- Vehicle details -->
+          <div class="dashboard-card mb-4">
+            <div class="dashboard-card-header">
+              <h3>My Vehicle Details</h3>
+              <i class="fas fa-truck text-muted"></i>
+            </div>
+            <div class="search-info-group">
+              <label>Plate Number</label>
+              <span id="drv-v-number" class="info-value">AP39AB1234</span>
+            </div>
+            <div class="search-info-group">
+              <label>Vehicle Type</label>
+              <span id="drv-v-type" class="info-value">Truck</span>
+            </div>
+            <div class="search-info-group">
+              <label>Insurance Expiry</label>
+              <span id="drv-v-insurance" class="info-value">2026-06-29</span>
+            </div>
+            <div class="search-info-group">
+              <label>Operational Status</label>
+              <span id="drv-v-status" class="info-value">Active</span>
+            </div>
+          </div>
+
+          <!-- Health Score -->
+          <div class="dashboard-card">
+            <div class="dashboard-card-header">
+              <h3>AI Vehicle Health</h3>
+              <i class="fas fa-heartbeat text-success"></i>
+            </div>
+            <div class="text-center py-4">
+              <div style="font-size: 3rem; font-weight: 700; color: var(--success);" id="drv-health-score">92/100</div>
+              <div style="color: var(--text-muted); font-size: 0.9rem;" id="drv-health-rating">Excellent Condition</div>
+              <div class="health-bar-bg mt-4" style="max-width: 250px; margin: 15px auto;">
+                <div id="drv-health-progress" class="health-bar-fill" style="width: 92%;"></div>
+              </div>
+              
+              <!-- Service Recommendation (Dynamic) -->
+              <div class="rec-box d-none" id="drv-maint-rec-box-inline" style="margin-top: 15px; padding: 12px; border-radius: 8px; background-color: #fdf2f8; border: 1px solid #fbcfe8; text-align: left; max-width: 280px; margin-left: auto; margin-right: auto;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: #9d174d; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;">
+                  <i class="fas fa-location-dot"></i> Service Center Recommendation
+                </div>
+                <div style="font-size: 0.8rem; line-height: 1.4; color: #5c0632;">
+                  <strong>Maintenance Required:</strong> YES<br>
+                  <strong>Recommended Service Center:</strong> Madhapur Fleet Diagnostics Point<br>
+                  <strong>Distance:</strong> 8 KM | <strong>Estimated Cost:</strong> ₹5000<br>
+                  <strong>Estimated Repair Time:</strong> 2 Days
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       AI ASSISTANT CHAT WIDGET
+       ========================================================================== -->
+  <div class="ai-chat-bubble" id="ai-chat-bubble" onclick="toggleAIChatWindow()" title="Talk to FleetControlX AI Assistant">
+    <i class="fas fa-robot"></i>
+    <span class="chat-pulse"></span>
+  </div>
+
+  <div class="ai-chat-window d-none" id="ai-chat-window">
+    <div class="ai-chat-header">
+      <div class="ai-chat-avatar">
+        <i class="fas fa-robot"></i>
+      </div>
+      <div class="ai-chat-header-title">
+        <h4>FleetControlX Assistant</h4>
+        <p>AI Copilot Online</p>
+      </div>
+      <button class="ai-chat-close" onclick="toggleAIChatWindow()"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div class="ai-chat-messages" id="ai-chat-messages-container">
+      <div class="chat-message bot">
+        <div class="chat-bubble">
+          Hello! I am your FleetControlX AI Assistant. I can check vehicle health scores, driver details, active alerts, and database statistics. Ask me anything!
+        </div>
+      </div>
+    </div>
+    
+    <form class="ai-chat-footer" id="ai-chat-input-form" onsubmit="handleAIChatSubmit(event)">
+      <input type="text" id="ai-chat-input-field" placeholder="Ask about vehicle stats, drivers..." autocomplete="off">
+      <button type="submit" class="ai-chat-send-btn"><i class="fas fa-paper-plane"></i></button>
+    </form>
+  </div>
+
+
+  <!-- ==========================================================================
+       CRUD MODALS SETUP
+       ========================================================================== -->
+
+  <!-- PROFILE DETAILS MODAL -->
+  <div id="profile-details-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>👤 User Profile Dossier</h3>
+        <button class="modal-close" onclick="closeModal('profile-details-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <div class="user-avatar" id="prof-modal-avatar" style="width:80px; height:80px; font-size:2rem; margin: 0 auto 15px auto;">AD</div>
+          <h3 id="prof-modal-name" style="font-weight: 700;">YADALLA DURGA SAI NATH</h3>
+          <span class="badge badge-success" id="prof-modal-badge" style="font-size:0.85rem; margin-top:5px;">ADMIN CONSOLE</span>
+        </div>
+        
+        <table class="report-table">
+          <tr><th>System ID</th><td id="prof-modal-id">EMP001</td></tr>
+          <tr><th>Registered Email</th><td id="prof-modal-email">sainath@gmail.com</td></tr>
+          <tr><th>Phone Number</th><td id="prof-modal-phone">9876543210</td></tr>
+          <tr id="prof-modal-vehicle-row" class="d-none"><th>Assigned Vehicle</th><td id="prof-modal-vehicle">AP39AB1234</td></tr>
+          <tr><th>Join Date / Active Since</th><td id="prof-modal-joindate">2024-01-15</td></tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('profile-details-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL -->
+  <div id="change-password-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>🔒 Change System Password</h3>
+        <button class="modal-close" onclick="closeModal('change-password-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="handlePasswordChange(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" id="cp-old" class="form-control" style="padding-left:14px;" required placeholder="Enter current password">
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="cp-new" class="form-control" style="padding-left:14px;" required placeholder="Min 6 characters">
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="cp-confirm" class="form-control" style="padding-left:14px;" required placeholder="Re-enter new password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('change-password-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width: auto;">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- VEHICLE MODAL -->
+  <div id="vehicle-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-vehicle-title">Add New Vehicle</h3>
+        <button class="modal-close" onclick="closeModal('vehicle-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="saveVehicleForm(event)">
+        <div class="modal-body">
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Vehicle ID</label>
+              <input type="text" id="v-id" class="form-control" style="padding-left: 14px;" placeholder="Auto-generated">
+            </div>
+            <div class="form-group">
+              <label>Vehicle Number</label>
+              <input type="text" id="v-number" class="form-control" style="padding-left: 14px;" placeholder="e.g. AP39AB1234" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Vehicle Type</label>
+              <select id="v-type" class="form-control" style="padding-left: 14px;">
+                <option value="Truck">Truck</option>
+                <option value="Van">Van</option>
+                <option value="Car">Car</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select id="v-status" class="form-control" style="padding-left: 14px;">
+                <option value="Active">Active</option>
+                <option value="Under Maintenance">Under Maintenance</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Purchase Date</label>
+              <input type="date" id="v-purchase-date" class="form-control" style="padding-left: 14px;" required value="2024-01-01">
+            </div>
+            <div class="form-group">
+              <label>Insurance Expiry Date</label>
+              <input type="date" id="v-insurance-date" class="form-control" style="padding-left: 14px;" required value="2026-06-29">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('vehicle-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width: auto;">Save Vehicle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DRIVER MODAL -->
+  <div id="driver-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-driver-title">Add New Driver</h3>
+        <button class="modal-close" onclick="closeModal('driver-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="saveDriverForm(event)">
+        <div class="modal-body">
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Driver ID</label>
+              <input type="text" id="d-id" class="form-control" style="padding-left: 14px;" placeholder="e.g. DRV005">
+            </div>
+            <div class="form-group">
+              <label>Driver Name</label>
+              <input type="text" id="d-name" class="form-control" style="padding-left: 14px;" placeholder="e.g. Ramesh Kumar" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" id="d-phone" class="form-control" style="padding-left: 14px;" placeholder="e.g. 9876543210" required>
+            </div>
+            <div class="form-group">
+              <label>License Number</label>
+              <input type="text" id="d-license" class="form-control" style="padding-left: 14px;" placeholder="e.g. DL-AP391234" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>License Expiry Date</label>
+              <input type="date" id="d-license-expiry" class="form-control" style="padding-left: 14px;" required value="2026-07-07">
+            </div>
+            <div class="form-group">
+              <label>Assigned Vehicle</label>
+              <select id="d-vehicle" class="form-control" style="padding-left: 14px;">
+                <!-- Filled dynamically -->
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('driver-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width: auto;">Save Driver</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TRIP MODAL -->
+  <div id="trip-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-trip-title">Log New Trip</h3>
+        <button class="modal-close" onclick="closeModal('trip-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="saveTripForm(event)">
+        <div class="modal-body">
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Source City</label>
+              <input type="text" id="t-source" class="form-control" style="padding-left: 14px;" placeholder="e.g. Hyderabad" required>
+            </div>
+            <div class="form-group">
+              <label>Destination City</label>
+              <input type="text" id="t-destination" class="form-control" style="padding-left: 14px;" placeholder="e.g. Vijayawada" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Distance (KM)</label>
+              <input type="number" id="t-distance" class="form-control" style="padding-left: 14px;" placeholder="e.g. 275" required>
+            </div>
+            <div class="form-group">
+              <label>Trip Date</label>
+              <input type="date" id="t-date" class="form-control" style="padding-left: 14px;" required value="2026-06-22">
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Driver Assigned</label>
+              <select id="t-driver" class="form-control" style="padding-left: 14px;">
+                <!-- dynamic -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Vehicle Assigned</label>
+              <select id="t-vehicle" class="form-control" style="padding-left: 14px;">
+                <!-- dynamic -->
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('trip-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width: auto;">Save Trip</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FUEL MODAL -->
+  <div id="fuel-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-fuel-title">Log Fuel Purchase</h3>
+        <button class="modal-close" onclick="closeModal('fuel-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="saveFuelForm(event)">
+        <div class="modal-body">
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Vehicle Number</label>
+              <select id="f-vehicle" class="form-control" style="padding-left: 14px;">
+                <!-- dynamic -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Refuel Date</label>
+              <input type="date" id="f-date" class="form-control" style="padding-left: 14px;" required value="2026-06-22">
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Fuel Quantity (Liters)</label>
+              <input type="number" step="0.01" id="f-quantity" class="form-control" style="padding-left: 14px;" placeholder="e.g. 80" required>
+            </div>
+            <div class="form-group">
+              <label>Total Cost (₹)</label>
+              <input type="number" step="0.01" id="f-cost" class="form-control" style="padding-left: 14px;" placeholder="e.g. 8800" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('fuel-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width: auto;">Save Fuel Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAINTENANCE MODAL -->
+  <div id="maint-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-maint-title">Log Maintenance Record</h3>
+        <button class="modal-close" onclick="closeModal('maint-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="saveMaintForm(event)">
+        <div class="modal-body">
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Vehicle Number</label>
+              <select id="m-vehicle" class="form-control" style="padding-left: 14px;">
+                <!-- dynamic -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Service Type</label>
+              <input type="text" id="m-type" class="form-control" style="padding-left: 14px;" placeholder="e.g. Engine Tuning" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Service Cost (₹)</label>
+              <input type="number" step="0.01" id="m-cost" class="form-control" style="padding-left: 14px;" placeholder="e.g. 15000" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Previous Service Date</label>
+              <input type="date" id="m-prev-date" class="form-control" style="padding-left: 14px;" required value="2026-04-10">
+            </div>
+            <div class="form-group">
+              <label>Next Service Date</label>
+              <input type="date" id="m-next-date" class="form-control" style="padding-left: 14px;" required value="2026-06-23">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('maint-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width: auto;">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EMPLOYEE MODAL -->
+  <div id="employee-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-employee-title">Add New Employee</h3>
+        <button class="modal-close" onclick="closeModal('employee-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <form onsubmit="saveEmployeeForm(event)">
+        <div class="modal-body">
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Employee ID</label>
+              <input type="text" id="emp-id" class="form-control" style="padding-left: 14px;" placeholder="e.g. EMP004">
+            </div>
+            <div class="form-group">
+              <label>Employee Name</label>
+              <input type="text" id="emp-name" class="form-control" style="padding-left: 14px;" placeholder="e.g. Sainath" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Email ID</label>
+              <input type="email" id="emp-email" class="form-control" style="padding-left: 14px;" placeholder="e.g. sainath@gmail.com" required>
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" id="emp-phone" class="form-control" style="padding-left: 14px;" placeholder="e.g. 9876543210" required>
+            </div>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label>Role</label>
+              <select id="emp-role" class="form-control" style="padding-left: 14px;">
+                <option value="ADMIN">ADMIN</option>
+                <option value="MANAGER">MANAGER</option>
+                <option value="DISPATCHER">DISPATCHER</option>
+                <option value="MECHANIC">MECHANIC</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Join Date</label>
+              <input type="date" id="emp-joindate" class="form-control" style="padding-left: 14px;" required value="2026-06-22">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('employee-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="width: auto;">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Scripts -->
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

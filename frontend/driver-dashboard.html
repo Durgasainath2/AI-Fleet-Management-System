@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetControlX AI - Driver Command Center</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #0f766e; /* Teal Theme for Driver */
+      --primary-dark: #115e59;
+      --accent: #ec4899;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-area i {
+      font-size: 2.2rem;
+      color: var(--primary);
+    }
+
+    .logo-text h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .logo-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .logout-btn {
+      padding: 10px 18px;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--danger);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background-color: var(--danger);
+      color: #ffffff;
+      border-color: var(--danger);
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 25px;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Tables */
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .info-table th, .info-table td {
+      padding: 10px 0;
+      text-align: left;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .info-table th {
+      color: var(--text-muted);
+      font-weight: 500;
+      width: 40%;
+    }
+
+    .info-table td {
+      font-weight: 600;
+    }
+
+    .trips-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .trips-table th, .trips-table td {
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      text-align: left;
+    }
+
+    .trips-table th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+    }
+
+    /* Health Widget */
+    .health-bar-container {
+      margin-top: 10px;
+    }
+
+    .health-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .health-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 50px;
+      overflow: hidden;
+    }
+
+    .health-bar-fill {
+      height: 100%;
+      background: linear-gradient(to right, var(--warning), var(--success));
+      width: 92%;
+      transition: width 0.5s ease;
+    }
+
+    /* Route Optimization Widget */
+    .route-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      padding: 10px 12px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      background-color: var(--primary);
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+
+    .route-result-box {
+      background-color: #f0fdfa;
+      border: 1.5px solid #99f6e4;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .route-result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1.5px dashed #99f6e4;
+    }
+
+    /* Badges */
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .badge-success { background-color: #d1fae5; color: #065f46; }
+    .badge-danger { background-color: #fee2e2; color: #991b1b; }
+
+    .d-none { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <header>
+      <div class="logo-area">
+        <i class="fas fa-truck-monster"></i>
+        <div class="logo-text">
+          <h1>FleetControlX AI Driver Portal</h1>
+          <p>Intelligent Fleet Operations Platform</p>
+        </div>
+      </div>
+      <div class="driver-profile-area" style="position: relative; display: flex; align-items: center; gap: 15px;">
+        <div class="profile-trigger" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); background-color: #ffffff; font-weight: 600; font-size: 0.9rem;" onclick="toggleDriverDropdown(event)">
+          <div class="avatar-circle" style="width: 32px; height: 32px; border-radius: 50%; background-color: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: 700;" id="drv-avatar-circle">DR</div>
+          <span id="drv-header-username" style="color: var(--text-main);">Ramesh</span>
+          <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+        </div>
+
+        <!-- Dropdown Menu -->
+        <div id="driver-profile-dropdown" class="d-none" style="position: absolute; top: 45px; right: 0; background-color: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow); width: 220px; z-index: 100; padding: 8px 0;">
+          <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px; text-align: left;">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);" id="drv-drop-fullname">Ramesh</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);" id="drv-drop-role">DRIVER (DRV001)</div>
+          </div>
+          <a onclick="showDriverProfileModal()" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; font-size: 0.85rem; color: var(--text-main); text-decoration: none; cursor: pointer; transition: background-color 0.2s;"><i class="fas fa-id-card" style="color: var(--primary); width: 16px;"></i> Profile Details</a>
+          <a onclick="showDriverPasswordModal()" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; font-size: 0.85rem; color: var(--text-main); text-decoration: none; cursor: pointer; transition: background-color 0.2s;"><i class="fas fa-key" style="color: var(--warning); width: 16px;"></i> Change Password</a>
+          <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+          <a onclick="logout()" style="display: flex; align-items: center; gap: 10px; padding: 10px 15px; font-size: 0.85rem; color: var(--danger); text-decoration: none; cursor: pointer; transition: background-color 0.2s;"><i class="fas fa-sign-out-alt" style="width: 16px;"></i> Logout</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      
+      <!-- Left Side: My Vehicle & Health -->
+      <div>
+        <!-- 1. My Vehicle -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-truck"></i> My Assigned Vehicle</h3>
+            <span class="badge badge-success" id="drv-vehicle-status">Active</span>
+          </div>
+          <table class="info-table">
+            <tr><th>Plate Number</th><td id="drv-vehicle-num">AP39AB1234</td></tr>
+            <tr><th>Vehicle Type</th><td id="drv-vehicle-type">Truck</td></tr>
+            <tr><th>Insurance Expiry</th><td id="drv-vehicle-insurance">2026-06-29</td></tr>
+          </table>
+        </div>
+
+        <!-- 2. Vehicle Health -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-heartbeat"></i> Vehicle Health Score</h3>
+          </div>
+          <div class="health-bar-container">
+            <div class="health-meta">
+              <span id="drv-health-rating">Excellent Status</span>
+              <span id="drv-health-score">92/100</span>
+            </div>
+            <div class="health-bar-bg">
+              <div class="health-bar-fill" id="drv-health-bar" style="width: 92%;"></div>
+            </div>
+          </div>
+          
+          <!-- Service Recommendation (Dynamic) -->
+          <div class="rec-box d-none" id="drv-maint-rec-box" style="margin-top: 15px; padding: 12px; border-radius: 8px; background-color: #fdf2f8; border: 1px solid #fbcfe8;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #9d174d; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;">
+              <i class="fas fa-location-dot"></i> Service Center Recommendation
+            </div>
+            <div style="font-size: 0.8rem; line-height: 1.4; color: #5c0632;">
+              <strong>Maintenance Required:</strong> YES<br>
+              <strong>Recommended Service Center:</strong> Madhapur Fleet Diagnostics Point<br>
+              <strong>Distance:</strong> 8 KM | <strong>Estimated Cost:</strong> ₹5000<br>
+              <strong>Estimated Repair Time:</strong> 2 Days
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card" style="border-left: 5px solid var(--danger);">
+          <div class="card-header">
+            <h3 class="text-danger"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> Emergency Dispatches</h3>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top: 10px;">
+            <a href="breakdown-report.html" class="btn btn-danger"><i class="fas fa-bullhorn"></i> Report Emergency Breakdown</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: Trips & Route Optimization -->
+      <div>
+        <!-- 3. Route Optimization -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-route"></i> Maps & Route Optimization</h3>
+            <span class="badge badge-success"><i class="fas fa-bolt"></i> AI Optimal</span>
+          </div>
+          <div class="route-inputs">
+            <div class="form-group">
+              <label>Source</label>
+              <input type="text" id="route-source" class="form-control" placeholder="e.g. Tirupati" value="Tirupati">
+            </div>
+            <div class="form-group">
+              <label>Destination</label>
+              <input type="text" id="route-destination" class="form-control" placeholder="e.g. Chennai" value="Chennai">
+            </div>
+          </div>
+          <button class="btn" style="width:100%" onclick="calculateOptimalRoute()"><i class="fas fa-map-marked-alt"></i> Plan Optimized Route</button>
+
+          <!-- Optimization Output -->
+          <div class="route-result-box" id="route-result" class="d-none">
+            <div>
+              <strong style="color: var(--primary-dark); font-size: 0.95rem;"><i class="fas fa-compass"></i> Recommended Path:</strong>
+              <span id="res-route-path" style="font-weight: 700; color: var(--accent);">NH716 Route (via Puttur Bypass)</span>
+            </div>
+            <div class="route-result-grid">
+              <div><strong>Distance:</strong> <span id="res-route-dist">135 KM</span></div>
+              <div><strong>Est. Time:</strong> <span id="res-route-time">2 Hours 45 Mins</span></div>
+              <div><strong>Est. Fuel Cost:</strong> <span id="res-route-fuel">₹850</span></div>
+              <div><strong>Road Status:</strong> <span style="color:var(--success); font-weight:700;"><i class="fas fa-check-circle"></i> Clear (No Delays)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. My Trips -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-route"></i> My Recent Trips Dispatch</h3>
+          </div>
+          <table class="trips-table">
+            <thead>
+              <tr><th>Trip ID</th><th>Route</th><th>Distance</th><th>Date</th></tr>
+            </thead>
+            <tbody id="drv-trips-tbody">
+              <!-- Dynamic -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 5. Service Request -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-wrench"></i> Log Service Request</h3>
+          </div>
+          <form onsubmit="submitServiceRequest(event)">
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label>Maintenance Request Type</label>
+              <select class="form-control" id="req-service-type" required>
+                <option value="Engine Check">General Engine Check</option>
+                <option value="Brake Pad Check">Brake Pad Check</option>
+                <option value="Oil Change">Oil Change</option>
+                <option value="Wheel Alignment">Wheel Alignment</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label>Extra Details / Driver Notes</label>
+              <textarea class="form-control" id="req-service-details" rows="2" placeholder="Describe symptoms or issues..." required></textarea>
+            </div>
+            <button class="btn" type="submit" style="width: 100%"><i class="fas fa-paper-plane"></i> Submit Request</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    // Retrieve DB
+    let db = {};
+    let loggedInUser = {};
+    try {
+      loggedInUser = JSON.parse(sessionStorage.getItem('fleet_user')) || JSON.parse(localStorage.getItem('fleet_user')) || { name: "Ramesh", id: "DRV001", vehicle: "AP39AB1234" };
+    } catch(e) {}
+
+    // Verify session
+    if (!loggedInUser || loggedInUser.role !== 'DRIVER') {
+      // fallback mock user for standalone
+      loggedInUser = { name: "Ramesh", id: "DRV001", vehicle: "AP39AB1234", role: "DRIVER" };
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      db = await fetchDb();
+      initDashboard();
+      calculateOptimalRoute();
+    });
+
+    function initDashboard() {
+      // Dynamic profile update in header and dropdown
+      const headerName = document.getElementById('drv-header-username');
+      if (headerName) headerName.textContent = loggedInUser.name;
+      
+      const dropFullname = document.getElementById('drv-drop-fullname');
+      if (dropFullname) dropFullname.textContent = loggedInUser.name;
+      
+      const dropRole = document.getElementById('drv-drop-role');
+      if (dropRole) dropRole.textContent = `DRIVER (${loggedInUser.id})`;
+      
+      const avatarCircle = document.getElementById('drv-avatar-circle');
+      if (avatarCircle && loggedInUser.name) {
+        avatarCircle.textContent = loggedInUser.name.substring(0, 2).toUpperCase();
+      }
+
+      const vehicleNum = loggedInUser.vehicle || "AP39AB1234";
+      document.getElementById('drv-vehicle-num').textContent = vehicleNum;
+      
+      let vehicle = db.vehicles ? db.vehicles.find(v => v.number === vehicleNum || v.id === vehicleNum) : null;
+      if (!vehicle) {
+        // Fallback for standalone HTML previews when localStorage is empty
+        vehicle = {
+          number: vehicleNum,
+          type: "Truck",
+          insuranceExpiry: "2026-06-29",
+          status: "Active"
+        };
+      }
+
+      document.getElementById('drv-vehicle-type').textContent = vehicle.type;
+      document.getElementById('drv-vehicle-insurance').textContent = vehicle.insuranceExpiry;
+      document.getElementById('drv-vehicle-status').textContent = vehicle.status;
+      document.getElementById('drv-vehicle-status').className = `badge ${vehicle.status === 'Active' ? 'badge-success' : 'badge-danger'}`;
+      
+      let health = 92;
+      if (vehicle.status === 'Under Maintenance') health = 40;
+      else if (vehicleNum === "AP39AB1234") health = 78;
+      
+      document.getElementById('drv-health-score').textContent = `${health}/100`;
+      document.getElementById('drv-health-rating').textContent = health > 80 ? "Excellent Status" : health > 60 ? "Maintenance Required" : "Critical Warning";
+      document.getElementById('drv-health-bar').style.width = `${health}%`;
+      document.getElementById('drv-health-bar').style.backgroundColor = health > 80 ? 'var(--success)' : health > 60 ? 'var(--warning)' : 'var(--danger)';
+      
+      // Show/hide recommended service center
+      const recBox = document.getElementById('drv-maint-rec-box');
+      if (recBox) {
+        if (health < 80) {
+          recBox.classList.remove('d-none');
+        } else {
+          recBox.classList.add('d-none');
+        }
+      }
+
+      // Populate driver trips
+      const tripsTbody = document.getElementById('drv-trips-tbody');
+      const filteredTrips = db.trips ? db.trips.filter(t => t.driver === loggedInUser.name || t.vehicle === vehicleNum) : [
+        { id: "TRP001", source: "Hyderabad", destination: "Vijayawada", distance: 275, date: "2026-06-20" },
+        { id: "TRP004", source: "Delhi", destination: "Jaipur", distance: 280, date: "2026-06-15" }
+      ];
+      tripsTbody.innerHTML = filteredTrips.map(t => `
+        <tr>
+          <td><strong>${t.id}</strong></td>
+          <td>${t.source} to ${t.destination}</td>
+          <td>${t.distance} KM</td>
+          <td>${t.date}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="4" style="text-align:center;">No recent trips logged.</td></tr>';
+    }
+
+    function calculateOptimalRoute() {
+      const source = document.getElementById('route-source').value.trim().toLowerCase();
+      const dest = document.getElementById('route-destination').value.trim().toLowerCase();
+      const resultBox = document.getElementById('route-result');
+
+      resultBox.classList.remove('d-none');
+
+      // Default optimization response
+      let distance = "135 KM";
+      let time = "2 Hours 45 Mins";
+      let fuel = "₹850";
+      let path = "NH716 Route (via Puttur Bypass)";
+
+      if (source.includes("tirupati") && dest.includes("chennai")) {
+        distance = "135 KM";
+        time = "2 Hours 45 Mins";
+        fuel = "₹850";
+        path = "NH716 Route (via Puttur Bypass)";
+      } else if (source.includes("hyderabad") && dest.includes("vijayawada")) {
+        distance = "275 KM";
+        time = "5 Hours 10 Mins";
+        fuel = "₹1,850";
+        path = "NH65 Expressway (via Suryapet)";
+      } else if (source.includes("bangalore") && dest.includes("chennai")) {
+        distance = "350 KM";
+        time = "6 Hours 30 Mins";
+        fuel = "₹2,400";
+        path = "NH48 Expressway (via Hosur & Vellore)";
+      } else {
+        // Dynamic calc fallback
+        const distNum = Math.floor(Math.random() * 400) + 50;
+        distance = `${distNum} KM`;
+        const mins = distNum * 1.2;
+        const h = Math.floor(mins / 60);
+        const m = Math.floor(mins % 60);
+        time = `${h} Hours ${m} Mins`;
+        fuel = `₹${Math.floor(distNum * 6.5)}`;
+        path = `AI Route Sector-${Math.floor(Math.random() * 10) + 1} Bypass`;
+      }
+
+      document.getElementById('res-route-path').textContent = path;
+      document.getElementById('res-route-dist').textContent = distance;
+      document.getElementById('res-route-time').textContent = time;
+      document.getElementById('res-route-fuel').textContent = fuel;
+    }
+
+    function submitServiceRequest(event) {
+      event.preventDefault();
+      const type = document.getElementById('req-service-type').value;
+      const details = document.getElementById('req-service-details').value;
+
+      // Add warning / toast alert
+      alert(`✅ Service Request Logged Successfully!\n\nRequest Type: ${type}\nDetails: ${details}\n\nOur maintenance team will schedule dispatch.`);
+      document.getElementById('req-service-details').value = '';
+    }
+
+    function logout() {
+      sessionStorage.removeItem('fleet_user');
+      localStorage.removeItem('fleet_user');
+      window.location.href = "index.html";
+    }
+
+    // Driver Profile Dropdown & Modal Logic
+    function toggleDriverDropdown(event) {
+      event.stopPropagation();
+      const dropdown = document.getElementById('driver-profile-dropdown');
+      dropdown.classList.toggle('d-none');
+    }
+
+    document.addEventListener('click', (event) => {
+      const dropdown = document.getElementById('driver-profile-dropdown');
+      const trigger = document.querySelector('.profile-trigger');
+      if (dropdown && !dropdown.classList.contains('d-none') && !trigger.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.add('d-none');
+      }
+    });
+
+    function showDriverProfileModal() {
+      document.getElementById('driver-profile-dropdown').classList.add('d-none');
+      
+      let driverData = null;
+      if (db.drivers) {
+        driverData = db.drivers.find(d => d.id === loggedInUser.id);
+      }
+      if (!driverData) {
+        driverData = {
+          id: loggedInUser.id || "DRV001",
+          name: loggedInUser.name || "Ramesh",
+          phone: "9123456789",
+          licenseNumber: "DL-AP391234",
+          licenseExpiry: "2026-07-07",
+          assignedVehicle: loggedInUser.vehicle || "AP39AB1234"
+        };
+      }
+      
+      document.getElementById('drv-modal-fullname').textContent = driverData.name;
+      document.getElementById('drv-modal-id').textContent = `DRIVER ID: ${driverData.id}`;
+      document.getElementById('drv-modal-phone').textContent = driverData.phone;
+      document.getElementById('drv-modal-license').textContent = driverData.licenseNumber;
+      document.getElementById('drv-modal-expiry').textContent = driverData.licenseExpiry;
+      document.getElementById('drv-modal-vehicle').textContent = driverData.assignedVehicle;
+      document.getElementById('drv-modal-avatar').textContent = driverData.name.substring(0, 2).toUpperCase();
+      
+      document.getElementById('drv-profile-modal').classList.remove('d-none');
+    }
+
+    function closeDriverProfileModal() {
+      document.getElementById('drv-profile-modal').classList.add('d-none');
+    }
+
+    function showDriverPasswordModal() {
+      document.getElementById('driver-profile-dropdown').classList.add('d-none');
+      document.getElementById('drv-curr-password').value = '';
+      document.getElementById('drv-new-password').value = '';
+      document.getElementById('drv-confirm-password').value = '';
+      document.getElementById('drv-password-modal').classList.remove('d-none');
+    }
+
+    function closeDriverPasswordModal() {
+      document.getElementById('drv-password-modal').classList.add('d-none');
+    }
+
+    async function handleDriverPasswordChange(event) {
+      event.preventDefault();
+      const currPass = document.getElementById('drv-curr-password').value.trim();
+      const newPass = document.getElementById('drv-new-password').value.trim();
+      const confirmPass = document.getElementById('drv-confirm-password').value.trim();
+      
+      if (!db.passwords) {
+        db.passwords = { "EMP001": "admin123", "EMP004": "mechanic123", "DRV001": "driver123" };
+      }
+      
+      const savedPassword = db.passwords[loggedInUser.id] || "driver123";
+      
+      if (currPass !== savedPassword) {
+        alert("❌ Incorrect current password!");
+        return;
+      }
+      
+      if (newPass !== confirmPass) {
+        alert("❌ New passwords do not match!");
+        return;
+      }
+      
+      if (newPass.length < 4) {
+        alert("❌ Password must be at least 4 characters long!");
+        return;
+      }
+      
+      db.passwords[loggedInUser.id] = newPass;
+      try {
+        await saveDb(db);
+      } catch(e) {}
+      
+      alert("✅ Password changed successfully!");
+      closeDriverPasswordModal();
+    }
+  </script>
+
+  <!-- Driver Profile Modal -->
+  <div id="drv-profile-modal" class="modal-overlay d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #ffffff; border-radius: 12px; width: 90%; max-width: 450px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); position: relative; border: 1px solid var(--border-color);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+        <h3 style="color: var(--primary-dark); font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px;"><i class="fas fa-id-card"></i> Driver Profile</h3>
+        <button onclick="closeDriverProfileModal()" style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: var(--primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; margin-bottom: 10px; box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.2);" id="drv-modal-avatar">DR</div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);" id="drv-modal-fullname">Ramesh</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;" id="drv-modal-id">DRIVER ID: DRV001</p>
+      </div>
+
+      <table class="info-table" style="margin-bottom: 15px;">
+        <tr><th style="font-weight: 600; color: var(--text-muted);">Phone Number</th><td id="drv-modal-phone" style="color: var(--text-main); font-weight: 600;">9123456789</td></tr>
+        <tr><th style="font-weight: 600; color: var(--text-muted);">License Number</th><td id="drv-modal-license" style="color: var(--text-main); font-weight: 600;">DL-AP391234</td></tr>
+        <tr><th style="font-weight: 600; color: var(--text-muted);">License Expiry</th><td id="drv-modal-expiry" style="color: var(--text-main); font-weight: 600;">2026-07-07</td></tr>
+        <tr><th style="font-weight: 600; color: var(--text-muted);">Assigned Vehicle</th><td id="drv-modal-vehicle" style="color: var(--text-main); font-weight: 600;">AP39AB1234</td></tr>
+      </table>
+      
+      <button onclick="closeDriverProfileModal()" class="btn" style="width: 100%; margin-top: 10px;"><i class="fas fa-check"></i> Done</button>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="drv-password-modal" class="modal-overlay d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background-color: #ffffff; border-radius: 12px; width: 90%; max-width: 400px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); position: relative; border: 1px solid var(--border-color);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+        <h3 style="color: var(--primary-dark); font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px;"><i class="fas fa-key"></i> Change Password</h3>
+        <button onclick="closeDriverPasswordModal()" style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <form id="drv-change-password-form" onsubmit="handleDriverPasswordChange(event)" style="display: flex; flex-direction: column; gap: 15px;">
+        <div class="form-group">
+          <label for="drv-curr-password" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Current Password</label>
+          <input type="password" id="drv-curr-password" class="form-control" placeholder="Enter current password" required>
+        </div>
+        <div class="form-group">
+          <label for="drv-new-password" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">New Password</label>
+          <input type="password" id="drv-new-password" class="form-control" placeholder="Enter new password" required>
+        </div>
+        <div class="form-group">
+          <label for="drv-confirm-password" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Confirm New Password</label>
+          <input type="password" id="drv-confirm-password" class="form-control" placeholder="Confirm new password" required>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button type="button" onclick="closeDriverPasswordModal()" class="btn" style="flex: 1; background-color: #ffffff; border: 1px solid var(--border-color); color: var(--text-main);"><i class="fas fa-ban"></i> Cancel</button>
+          <button type="submit" class="btn" style="flex: 1;"><i class="fas fa-save"></i> Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

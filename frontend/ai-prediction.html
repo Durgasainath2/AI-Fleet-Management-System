@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetControlX AI - Prediction Hub</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #004d40;
+      --primary-dark: #003a40;
+      --accent: #ec4899;
+      --accent-hover: #db2777;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      padding: 30px 15px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-area i {
+      font-size: 2.2rem;
+      color: var(--primary);
+    }
+
+    .logo-text h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: 0.5px;
+    }
+
+    .logo-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .back-btn:hover {
+      background-color: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* Search Card */
+    .search-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 25px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .search-card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+      color: var(--primary-dark);
+    }
+
+    .search-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .search-flex {
+      display: flex;
+      gap: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      background-color: var(--primary);
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* Grid of Predictions */
+    .prediction-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .prediction-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pred-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      padding: 25px;
+      transition: transform 0.2s ease;
+    }
+
+    .pred-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      border-bottom: 1.5px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .card-title i {
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 0.9rem;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      color: var(--text-muted);
+    }
+
+    .metric-val {
+      font-weight: 600;
+    }
+
+    /* Specific components */
+    .health-gauge-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .health-gauge {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--success);
+      font-size: 1.1rem;
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-success { background-color: #d1fae5; color: #065f46; }
+    .badge-warning { background-color: #fef3c7; color: #92400e; }
+    .badge-danger { background-color: #fee2e2; color: #991b1b; }
+
+    .cost-box {
+      background: #eff6ff;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #bfdbfe;
+      font-size: 0.8rem;
+    }
+
+    .rec-box {
+      background: #fdf2f8;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #fbcfe8;
+      font-size: 0.8rem;
+    }
+
+    .d-none {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <header>
+      <div class="logo-area">
+        <i class="fas fa-brain"></i>
+        <div class="logo-text">
+          <h1>FleetControlX AI Prediction Hub</h1>
+          <p>Intelligent Fleet Operations Platform</p>
+        </div>
+      </div>
+      <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Main Portal</a>
+    </header>
+
+    <!-- Search Section -->
+    <div class="search-card">
+      <h2>Simulate AI Predictive Diagnosis</h2>
+      <p>Enter any registered vehicle plate number to query neural predictions & breakdown risk models.</p>
+      <div class="search-flex">
+        <input type="text" id="ai-search-input" class="search-input" placeholder="e.g. AP39AB1234 or 101" value="">
+        <button class="btn" onclick="runAIPredictions()"><i class="fas fa-microchip"></i> Run AI Engine</button>
+        <a href="index.html" class="back-btn" style="box-shadow: none;"><i class="fas fa-arrow-left"></i> Back</a>
+      </div>
+    </div>
+
+    <!-- Predictions Output -->
+    <div id="ai-predictions-output" class="prediction-grid d-none">
+      
+      <!-- Section 1: Vehicle Health Score -->
+      <div class="pred-card">
+        <div class="card-title">
+          <i class="fas fa-heartbeat"></i>
+          <span>Vehicle Health Score</span>
+        </div>
+        <div class="health-gauge-container">
+          <div class="health-gauge" id="ai-health-gauge">88%</div>
+          <div>
+            <h4 style="font-size: 0.95rem; font-weight: 700;" id="ai-health-lbl">Excellent Engine Health</h4>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Overall mechanical prognosis is steady</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Breakdown Risk -->
+      <div class="pred-card">
+        <div class="card-title">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Breakdown Risk Analysis</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Calculated Risk Level</span>
+          <span class="badge badge-success" id="ai-risk-level">Low Risk</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Breakdown Probability</span>
+          <span class="metric-val" id="ai-risk-pct">12%</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Primary Risk Factor</span>
+          <span class="metric-val" id="ai-risk-factor">None Detected</span>
+        </div>
+      </div>
+
+      <!-- Section 3: Maintenance Prediction -->
+      <div class="pred-card">
+        <div class="card-title">
+          <i class="fas fa-wrench"></i>
+          <span>Maintenance Prognostics</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Maintenance Required</span>
+          <span class="metric-val" id="ai-maint-req">NO</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Est. Next Service Date</span>
+          <span class="metric-val" id="ai-maint-date">2026-09-15</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Recommended Action</span>
+          <span class="metric-val" id="ai-maint-action">Regular Inspection</span>
+        </div>
+
+        <!-- Recommended Service Center Widget -->
+        <div class="rec-box" id="ai-rec-box">
+          <strong style="color: #9d174d;"><i class="fas fa-location-dot"></i> Recommended Service Point</strong><br>
+          <span style="font-size: 0.75rem;">Madhapur Diagnostics Point (8 KM away) | Time: 2 Days</span>
+        </div>
+      </div>
+
+      <!-- Section 4: Cost Savings Prediction -->
+      <div class="pred-card">
+        <div class="card-title">
+          <i class="fas fa-piggy-bank"></i>
+          <span>Maintenance Cost Savings</span>
+        </div>
+        <div class="cost-box">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <span>Service Today:</span>
+            <strong id="ai-cost-today">₹5,000</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <span>If Delayed 2 Months:</span>
+            <strong id="ai-cost-delay">₹18,000</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px; padding-top:6px; border-top:1px dashed #bfdbfe; font-weight:700; color:var(--success);">
+            <span>Potential Savings:</span>
+            <span id="ai-savings">₹13,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Driver Performance -->
+      <div class="pred-card" style="grid-column: span 2;">
+        <div class="card-title">
+          <i class="fas fa-user-astronaut"></i>
+          <span>Driver Performance Forecast</span>
+        </div>
+        <div class="prediction-grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; box-shadow: none; padding: 0;">
+          <div class="metric-row" style="flex-direction: column; align-items: flex-start; border-bottom: none;">
+            <span class="metric-label">Assigned Driver</span>
+            <span class="metric-val" style="font-size: 1.1rem; margin-top: 5px;" id="ai-drv-name">Ramesh</span>
+          </div>
+          <div class="metric-row" style="flex-direction: column; align-items: flex-start; border-bottom: none;">
+            <span class="metric-label">Driver Rating Score</span>
+            <span class="metric-val" style="font-size: 1.1rem; margin-top: 5px; color: var(--warning);" id="ai-drv-stars">★★★★★ (4.8)</span>
+          </div>
+          <div class="metric-row" style="flex-direction: column; align-items: flex-start; border-bottom: none;">
+            <span class="metric-label">Driving Safety Risk</span>
+            <span class="badge badge-success" style="margin-top: 8px;" id="ai-drv-safety">Low Risk</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 6: Fuel Cost & Consumption Prediction -->
+      <div class="pred-card" style="grid-column: span 2;">
+        <div class="card-title">
+          <i class="fas fa-coins"></i>
+          <span>Fuel Cost & Consumption Forecast</span>
+        </div>
+        <div class="prediction-grid" style="grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0; box-shadow: none;">
+          <div class="metric-row">
+            <span class="metric-label">Est. Fuel Cost Next Month</span>
+            <span class="metric-val" style="font-size: 1.1rem;" id="ai-fuel-cost">₹12,400</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Expected Mileage Trend</span>
+            <span class="metric-val" style="font-size: 1.1rem; color: var(--success);" id="ai-fuel-trend">Optimal (+3.2% Efficiency)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Error container -->
+    <div id="ai-error-container" class="search-card d-none">
+      <i class="fas fa-exclamation-circle" style="font-size: 2.5rem; color: var(--danger); margin-bottom: 12px;"></i>
+      <h3 style="color: var(--danger);">No Vehicle Found</h3>
+      <p style="margin-top: 4px;">Please check the plate number and search again.</p>
+    </div>
+
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    let db = {};
+
+    function runAIPredictions() {
+      const query = document.getElementById('ai-search-input').value.trim().toUpperCase();
+      const output = document.getElementById('ai-predictions-output');
+      const err = document.getElementById('ai-error-container');
+
+      if (!query || !db.vehicles) return;
+
+      const vehicle = db.vehicles.find(v => v.id === query || v.number.toUpperCase() === query);
+      if (!vehicle) {
+        output.classList.add('d-none');
+        err.classList.remove('d-none');
+        return;
+      }
+
+      err.classList.add('d-none');
+      output.classList.remove('d-none');
+
+      // Find driver
+      const driver = db.drivers ? db.drivers.find(d => d.assignedVehicle === vehicle.number) : null;
+
+      // Populate elements
+      let health = 90;
+      let riskVal = "Low Risk";
+      let riskBadge = "badge-success";
+      let riskPct = "10%";
+      let riskFactor = "None Detected";
+      let maintReq = "NO";
+      let nextMaint = "2026-09-15";
+      let maintAction = "Regular Inspection";
+
+      if (vehicle.status === "Under Maintenance") {
+        health = 45;
+        riskVal = "High Risk";
+        riskBadge = "badge-danger";
+        riskPct = "85%";
+        riskFactor = "Critical Brake & Engine wear";
+        maintReq = "YES";
+        nextMaint = "IMMEDIATE";
+        maintAction = "Repairs Needed";
+      } else if (vehicle.number === "AP39AB1234") {
+        health = 78;
+        riskVal = "Medium Risk";
+        riskBadge = "badge-warning";
+        riskPct = "48%";
+        riskFactor = "Old service duration";
+        maintReq = "YES";
+        nextMaint = "2026-06-25";
+        maintAction = "Scheduled Oil & Filter Change";
+      }
+
+      // Health Score UI
+      const healthGauge = document.getElementById('ai-health-gauge');
+      healthGauge.textContent = `${health}%`;
+      healthGauge.style.color = health > 80 ? 'var(--success)' : health > 60 ? 'var(--warning)' : 'var(--danger)';
+      document.getElementById('ai-health-lbl').textContent = health > 85 ? "Excellent Status" : health > 70 ? "Stable Condition" : "Critical Maintenance Required";
+
+      // Breakdown Risk UI
+      document.getElementById('ai-risk-level').textContent = riskVal;
+      document.getElementById('ai-risk-level').className = `badge ${riskBadge}`;
+      document.getElementById('ai-risk-pct').textContent = riskPct;
+      document.getElementById('ai-risk-factor').textContent = riskFactor;
+
+      // Maintenance Prognostics UI
+      document.getElementById('ai-maint-req').textContent = maintReq;
+      document.getElementById('ai-maint-date').textContent = nextMaint;
+      document.getElementById('ai-maint-action').textContent = maintAction;
+
+      const recBox = document.getElementById('ai-rec-box');
+      if (maintReq === "YES") {
+        recBox.classList.remove('d-none');
+      } else {
+        recBox.classList.add('d-none');
+      }
+
+      // Cost Savings UI
+      document.getElementById('ai-cost-today').textContent = "₹5,000";
+      document.getElementById('ai-cost-delay').textContent = "₹18,000";
+      document.getElementById('ai-savings').textContent = "₹13,000";
+
+      // Driver UI
+      document.getElementById('ai-drv-name').textContent = driver ? driver.name : "Unassigned";
+      document.getElementById('ai-drv-stars').textContent = "★★★★★ (4.8)";
+      document.getElementById('ai-drv-safety').textContent = "Low Risk";
+
+      // Fuel UI
+      document.getElementById('ai-fuel-cost').textContent = "₹12,400";
+      document.getElementById('ai-fuel-trend').textContent = "Optimal (+3.2% Efficiency)";
+    }
+
+    // Auto run on load
+    window.addEventListener('DOMContentLoaded', async () => {
+      db = await fetchDb();
+      const query = document.getElementById('ai-search-input').value.trim();
+      if (query) {
+        runAIPredictions();
+      }
+    });
+  </script>
+
+</body>
+</html>

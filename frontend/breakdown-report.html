@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetControlX AI - Emergency Incident Reporting</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #ef4444; /* Emergency Red */
+      --primary-dark: #dc2626;
+      --accent: #ec4899;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-area i {
+      font-size: 2.2rem;
+      color: var(--primary);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .logo-text h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .logo-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .back-btn:hover {
+      background-color: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 25px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-header h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .form-control {
+      padding: 11px 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      background-color: var(--primary);
+      justify-content: center;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* AI Breakdown Assistant Widget */
+    .ai-assistant-card {
+      background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+      border-left: 5px solid var(--primary);
+    }
+
+    .ai-assistant-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1.5px solid var(--border-color);
+    }
+
+    .ai-assistant-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .ai-assistant-header i {
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
+    .ai-detail-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+    }
+
+    .ai-detail-row span.label {
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .ai-detail-row span.value {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .badge-danger { background-color: #fee2e2; color: #991b1b; }
+    .badge-warning { background-color: #fef3c7; color: #92400e; }
+    .badge-info { background-color: #e0f2fe; color: #075985; }
+
+    .d-none { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <header>
+      <div class="logo-area">
+        <i class="fas fa-bullhorn text-danger"></i>
+        <div class="logo-text">
+          <h1>FleetControlX AI Incident Center</h1>
+          <p>Intelligent Fleet Operations Platform</p>
+        </div>
+      </div>
+      <a href="driver-dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    </header>
+
+    <div class="grid">
+      
+      <!-- Left: Form -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-file-invoice"></i> Log Emergency Incident</h3>
+          </div>
+          <form onsubmit="handleBreakdownSubmit(event)">
+            
+            <div class="form-group">
+              <label>Vehicle Plate Number</label>
+              <input type="text" id="bd-vehicle" class="form-control" placeholder="e.g. AP39AB1234" value="AP39AB1234" required>
+            </div>
+
+            <div class="form-group">
+              <label>Current Location Address</label>
+              <input type="text" id="bd-location" class="form-control" placeholder="e.g. NH-44 Highway, Mile 120 near Toll" required>
+            </div>
+
+            <div class="form-group">
+              <label>Distance from Nearest Depot (KM)</label>
+              <input type="number" id="bd-distance" class="form-control" placeholder="e.g. 45" value="45" required min="1">
+            </div>
+
+            <div class="form-group">
+              <label>Issue Type / Symptom</label>
+              <select id="bd-issue-type" class="form-control" onchange="runAIBreakdownAssistant()" required>
+                <option value="Engine Noise">Engine Noise / Overheating</option>
+                <option value="Battery Problem">Battery Problem / Start Failure</option>
+                <option value="Tyre Issue">Tyre Puncture / Burst</option>
+                <option value="Brake Issue">Brake Slip / Squeal</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Detailed Problem Description</label>
+              <textarea id="bd-desc" class="form-control" rows="3" placeholder="Explain the symptoms in detail..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Attach Incident Photo (Optional)</label>
+              <input type="file" id="bd-image" class="form-control" style="padding: 7px 10px; font-size: 0.8rem;">
+            </div>
+
+            <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Dispatch Emergency Report</button>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Right: AI Breakdown Assistant -->
+      <div>
+        <div class="card ai-assistant-card">
+          <div class="ai-assistant-header">
+            <i class="fas fa-robot"></i>
+            <h3>AI Breakdown Assistant</h3>
+          </div>
+          
+          <div id="ai-assistant-output">
+            <div class="ai-detail-row">
+              <span class="label">Symptom Detected:</span>
+              <span class="value" id="ai-sym-name">Engine Noise</span>
+            </div>
+            
+            <div class="ai-detail-row">
+              <span class="label">Risk Level:</span>
+              <div><span class="badge badge-danger" id="ai-sym-risk">High Risk</span></div>
+            </div>
+
+            <div class="ai-detail-row">
+              <span class="label">Possible Cause:</span>
+              <span class="value" id="ai-sym-cause">Engine coolant depletion or gasket rupture.</span>
+            </div>
+
+            <div class="ai-detail-row">
+              <span class="label">Suggested Action:</span>
+              <span class="value" id="ai-sym-action">Pull over immediately, turn off ignition, do not open hot radiator cap.</span>
+            </div>
+
+            <div class="ai-detail-row">
+              <span class="label">Est. Repair Cost:</span>
+              <span class="value" id="ai-sym-cost" style="color:var(--danger); font-size: 1.1rem;">₹8,000</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Symptoms database for AI Assistant
+    const AI_DIAGNOSTICS = {
+      "Engine Noise": {
+        cause: "Engine coolant depletion, belt slip, or valve tap.",
+        risk: "High Risk",
+        badge: "badge-danger",
+        action: "Pull over immediately, turn off engine, wait for towing.",
+        cost: "₹8,000"
+      },
+      "Battery Problem": {
+        cause: "Alternator failure or terminal corrosion.",
+        risk: "Medium Risk",
+        badge: "badge-warning",
+        action: "Turn off auxiliary electronics, request battery jump start.",
+        cost: "₹4,500"
+      },
+      "Tyre Issue": {
+        cause: "Foreign sharp object puncture or sidewall bubble burst.",
+        risk: "Low Risk",
+        badge: "badge-info",
+        action: "Move to hard shoulder, place emergency triangles, inflate spare.",
+        cost: "₹1,500"
+      },
+      "Brake Issue": {
+        cause: "Brake pad wear or brake oil leak.",
+        risk: "High Risk",
+        badge: "badge-danger",
+        action: "Avoid high speeds, use low gear engine braking, pull over.",
+        cost: "₹6,000"
+      }
+    };
+  </script>
+
+  <script src="api.js"></script>
+  <script>
+    let db = {};
+    let loggedInUser = {};
+    try {
+      loggedInUser = JSON.parse(sessionStorage.getItem('fleet_user')) || JSON.parse(localStorage.getItem('fleet_user')) || { name: "Ramesh", id: "DRV001", vehicle: "AP39AB1234" };
+    } catch(e) {}
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      db = await fetchDb();
+      if (loggedInUser && loggedInUser.vehicle) {
+        document.getElementById('bd-vehicle').value = loggedInUser.vehicle;
+      }
+      runAIBreakdownAssistant();
+    });
+
+    function runAIBreakdownAssistant() {
+      const issue = document.getElementById('bd-issue-type').value;
+      const data = AI_DIAGNOSTICS[issue];
+
+      if (!data) return;
+
+      document.getElementById('ai-sym-name').textContent = issue;
+      document.getElementById('ai-sym-risk').textContent = data.risk;
+      document.getElementById('ai-sym-risk').className = `badge ${data.badge}`;
+      document.getElementById('ai-sym-cause').textContent = data.cause;
+      document.getElementById('ai-sym-action').textContent = data.action;
+      document.getElementById('ai-sym-cost').textContent = data.cost;
+    }
+
+    async function handleBreakdownSubmit(event) {
+      event.preventDefault();
+      const vehicleNum = document.getElementById('bd-vehicle').value.trim().toUpperCase();
+      const location = document.getElementById('bd-location').value.trim();
+      const distance = parseInt(document.getElementById('bd-distance').value) || 45;
+      const issue = document.getElementById('bd-issue-type').value;
+      const desc = document.getElementById('bd-desc').value.trim();
+
+      // Check distance range limit (60 KM)
+      if (distance > 60) {
+        alert(`⚠️ Mechanic Coverage Range Exceeded (60 KM Max)\n\nThe nearest depot is ${distance} KM away.\n\nSystem Message: Please proceed or tow the vehicle to the nearest local mechanic shop.`);
+      }
+
+      // Add to DB breakdowns
+      const newId = "BD" + String((db.breakdowns || []).length + 1).padStart(3, '0');
+      const newReport = {
+        id: newId,
+        vehicle: vehicleNum,
+        location: location,
+        distance: distance,
+        rangeWarning: distance > 60,
+        issueType: issue,
+        description: desc,
+        date: "2026-06-24",
+        status: "Pending",
+        mechanicStatus: "Pending",
+        driverName: loggedInUser ? loggedInUser.name : "Unknown",
+        driverId: loggedInUser ? loggedInUser.id : null
+      };
+
+      if (!db.breakdowns) db.breakdowns = [];
+      db.breakdowns.push(newReport);
+
+      // Set vehicle status to Under Maintenance
+      if (db.vehicles) {
+        const vIndex = db.vehicles.findIndex(v => v.number === vehicleNum || v.id === vehicleNum);
+        if (vIndex !== -1) {
+          db.vehicles[vIndex].status = "Under Maintenance";
+        }
+      }
+
+      // Push warning SMS alert
+      if (!db.alerts) db.alerts = [];
+      db.alerts.unshift({
+        id: "ALT" + String(db.alerts.length + 1).padStart(3, '0'),
+        vehicle: vehicleNum,
+        title: `SMS WARNING: Emergency Breakdown (${issue}) logged by Driver ${loggedInUser ? loggedInUser.name : 'Unknown'}. Distance: ${distance} KM`,
+        type: 'danger',
+        date: "2026-06-24"
+      });
+
+      // Save database
+      await saveDb(db);
+
+      alert("✅ Incident Report Dispatched successfully to Admin and Towing Dispatch Team!");
+      
+      // Redirect to driver portal dashboard
+      window.location.href = "driver-dashboard.html";
+    }
+  </script>
+
+</body>
+</html>
